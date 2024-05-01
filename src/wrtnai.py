@@ -5,7 +5,7 @@ import time
 
 import requests
 import uvicorn
-from fastapi import Request, Response, FastAPI
+from fastapi import Request, Response, FastAPI, HTTPException
 from starlette.middleware.cors import CORSMiddleware
 
 from chat2api import ChatServer, Chat2API
@@ -192,6 +192,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+async def verify_key(authorization: str = Header(...)):
+    accesstoken = os.getenv('ACCESS_TOKEN')
+    try:
+        prefix, token = authorization.split()
+        if prefix.lower() != "bearer" or token != accesstoken:
+            raise HTTPException(status_code=400, detail="6")
+    except ValueError:
+        raise HTTPException(status_code=400, detail="6")
 
 @app.get('/yyds/v1/models')
 def list_models():
@@ -212,13 +220,15 @@ async def pre_chat():
 
 
 @app.post('/yyds/v1/chat/completions')
-async def chat(request: Request):
+async def chat(request: Request, authorization: str = Depends(verify_key)):
     return await chat2api_server.response(request)
 
 
 if __name__ == '__main__':
     REFRESH_TOKEN = os.getenv('REFRESH_TOKEN')
     assert REFRESH_TOKEN, 'REFRESH_TOKEN must be set'
+    ACCESS_TOKEN = os.getenv('ACCESS_TOKEN')
+    assert ACCESS_TOKEN, 'ACCESS_TOKEN must be set'
     FIND_CHAT_BY_QUESTION = LRUCache(1000)
     PROXY = os.environ.get("PROXY")
     if PROXY:
