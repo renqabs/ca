@@ -5,7 +5,7 @@ import time
 
 import requests
 import uvicorn
-from fastapi import Request, Response, FastAPI, HTTPException
+from fastapi import Request, Response, FastAPI, HTTPException, Header, Depends
 from starlette.middleware.cors import CORSMiddleware
 
 from chat2api import ChatServer, Chat2API
