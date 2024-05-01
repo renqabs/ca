@@ -193,7 +193,7 @@ app.add_middleware(
 )
 
 
-@app.get('/v1/models')
+@app.get('/yyds/v1/models')
 def list_models():
     return {
         "object": "list",
@@ -206,12 +206,12 @@ def list_models():
     }
 
 
-@app.options('/v1/chat/completions')
+@app.options('/yyds/v1/chat/completions')
 async def pre_chat():
     return Response()
 
 
-@app.post('/v1/chat/completions')
+@app.post('/yyds/v1/chat/completions')
 async def chat(request: Request):
     return await chat2api_server.response(request)
 
