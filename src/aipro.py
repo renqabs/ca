@@ -197,4 +197,4 @@ if __name__ == '__main__':
     FIND_LAST_MSG_IN_CHAT = LRUCache(1000)
     ACCESS_TOKEN = os.getenv('ACCESS_TOKEN')
     assert ACCESS_TOKEN, 'ACCESS_TOKEN must be set'
-    uvicorn.run(app, host='0.0.0.0', port=5000)
+    uvicorn.run(app, host='0.0.0.0', port=7860)
