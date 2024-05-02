@@ -3,7 +3,7 @@ import os
 
 import requests
 import uvicorn
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI, Request, Response, HTTPException, Header, Depends
 from starlette.middleware.cors import CORSMiddleware
 
 from chat2api import Chat2API
@@ -158,6 +158,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+async def verify_key(authorization: str = Header(...)):
+    accesstoken = os.getenv('ACCESS_TOKEN')
+    try:
+        prefix, token = authorization.split()
+        if prefix.lower() != "bearer" or token != accesstoken:
+            raise HTTPException(status_code=400, detail="6")
+    except ValueError:
+        raise HTTPException(status_code=400, detail="6")
 
 @app.get('/yyds/v1/models')
 def list_models():
@@ -178,7 +186,7 @@ async def pre_chat():
 
 
 @app.post('/yyds/v1/chat/completions')
-async def chat(request: Request):
+async def chat(request: Request, authorization: str = Depends(verify_key)):
     cli = OpenaiAPI()
     ser = AiPro(cli)
     return await Chat2API(cli, ser).response(request)
@@ -187,4 +195,6 @@ async def chat(request: Request):
 if __name__ == '__main__':
     FIND_CHAT_BY_QUESTION = LRUCache(1000)
     FIND_LAST_MSG_IN_CHAT = LRUCache(1000)
+    ACCESS_TOKEN = os.getenv('ACCESS_TOKEN')
+    assert ACCESS_TOKEN, 'ACCESS_TOKEN must be set'
     uvicorn.run(app, host='0.0.0.0', port=5000)
