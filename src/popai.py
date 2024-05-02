@@ -3,7 +3,7 @@ import os
 
 import requests
 import uvicorn
-from fastapi import Request, Response, FastAPI
+from fastapi import Request, Response, FastAPI, HTTPException, Header, Depends
 from starlette.middleware.cors import CORSMiddleware
 
 from chat2api import ChatServer, Chat2API
@@ -137,6 +137,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+async def verify_key(authorization: str = Header(...)):
+    accesstoken = os.getenv('ACCESS_TOKEN')
+    try:
+        prefix, token = authorization.split()
+        if prefix.lower() != "bearer" or token != accesstoken:
+            raise HTTPException(status_code=400, detail="6")
+    except ValueError:
+        raise HTTPException(status_code=400, detail="6")
 
 @app.get('/yyds/v1/models')
 def list_models():
@@ -157,7 +165,7 @@ async def pre_chat():
 
 
 @app.post('/yyds/v1/chat/completions')
-async def chat(request: Request):
+async def chat(request: Request, authorization: str = Depends(verify_key)):
     cli = OpenaiAPI()
     ser = PopAi(cli, AUTHORIZATION, GTOKEN)
     return await Chat2API(cli, ser).response(request)
@@ -168,6 +176,8 @@ if __name__ == '__main__':
     GTOKEN = os.environ.get('GTOKEN')
     assert AUTHORIZATION, 'AUTHORIZATION must be set'
     assert GTOKEN, 'GTOKEN must be set'
+    ACCESS_TOKEN = os.getenv('ACCESS_TOKEN')
+    assert ACCESS_TOKEN, 'ACCESS_TOKEN must be set'
     FIND_CHAT_BY_QUESTION = LRUCache(1000)
 
-    uvicorn.run(app, host='0.0.0.0', port=5000)
+    uvicorn.run(app, host='0.0.0.0', port=7860)
