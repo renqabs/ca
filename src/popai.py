@@ -15,6 +15,7 @@ class PopAi(ChatServer):
     MODELS = {
         'gpt-3.5': 'Standard',
         'gpt-4': 'GPT-4',
+        'gpt-4o': 'GPT-4o',
         'internet': 'Web Search',
         'draw': 'Image generation',
     }
